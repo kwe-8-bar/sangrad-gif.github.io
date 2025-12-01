@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Messages for the Lovely Grad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Classy fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Firebase compat SDKs (simpler & more reliable for this use case) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      color: #333;
+      line-height: 1.7;
+      letter-spacing: 0.2px;
+    }
+
+    .page {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #AB2941 0%, #8b1f35 100%);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(171, 41, 65, 0.3);
+    }
+
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.5px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      color: #E4E4E4;
+      letter-spacing: 0.4px;
+    }
+
+    .header p {
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      opacity: 0.95;
+    }
+
+    .tagline {
+      font-size: 1rem;
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    .profile {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 2rem auto 0;
+      padding: 0 1rem;
+    }
+
+    .profile-item {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 1.5rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .profile-label {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #E4E4E4;
+    }
+
+    .profile-value {
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    /* Gallery */
+    .gallery-wrapper {
+      padding: 4rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .gallery-title {
+      text-align: center;
+      font-size: 2.3rem;
+      color: #AB2941;
+      margin-bottom: 3rem;
+      font-weight: 600;
+      font-family: 'Playfair Display', serif;
+      letter-spacing: 0.4px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+    }
+
+    .photo {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: transparent;
+      height: 300px;
+    }
+
+    .photo:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(171, 41, 65, 0.25);
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #9A223B;
+    }
+
+    .p5 {
+      grid-column: span 2;
+      height: 350px;
+      transform: scale(1.03);
+      transition: transform 0.3s ease;
+    }
+
+    .p5:hover {
+      transform: scale(1.06);
+    }
+
+    /* Form section */
+    .form-section {
+      background: white;
+      max-width: 800px;
+      margin: 0 auto 4rem;
+      padding: 3rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section h3 {
+      font-family: 'Playfair Display', serif;
+      color: #AB2941;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+
+    .form-section > p {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    label {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.98rem;
+      margin-bottom: 0.5rem;
+      display: block;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.9rem;
+      border: 2px solid #E4E4E4;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #AB2941;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    button[type="submit"] {
+      background: linear-gradient(135deg, #AB2941 0%, #8b1f35 100%);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 12px rgba(171, 41, 65, 0.3);
+      letter-spacing: 0.3px;
+    }
+
+    button[type="submit"]:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(171, 41, 65, 0.4);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(0);
+    }
+
+    button[type="submit"]:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #status {
+      text-align: center;
+      font-weight: 600;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .view-note {
+      text-align: center;
+      color: #666;
+      font-size: 0.98rem;
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f8f8f8;
+      border-radius: 8px;
+      letter-spacing: 0.3px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .view-note strong {
+      font-family: 'Playfair Display', serif;
+      color: #AB2941;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2.1rem;
+      }
+
+      .header h2 {
+        font-size: 1.5rem;
+      }
+
+      .header p {
+        font-size: 1rem;
+      }
+
+      .gallery-title {
+        font-size: 1.9rem;
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      .p5 {
+        grid-column: span 1;
+        height: 350px;
+        transform: scale(1.02);
+      }
+
+      .form-section {
+        margin: 0 1rem 3rem;
+        padding: 2rem 1.5rem;
+      }
+
+      .form-section h3 {
+        font-size: 1.7rem;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .p5 {
+        height: 350px;
+      }
+    }
+
+    @media (min-width: 1025px) {
+      .gallery-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .p5 {
+        height: 350px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header class="header">
+      <h1>An Ode to the Grad</h1>
+      <h2>Celebrating Sandrine</h2>
+      <p>
+        Sandrine is officially about to walk the stage for her graduation, and we could not be more proud of her.
+        This moment celebrates her journey, her hard work, her heart, and everything she continues to grow into.
+        As she steps into her next chapter, please share your messages of love, encouragement, and blessings
+        for her future.
+      </p>
+
+      <div class="tagline">Class of 2025 • With love from friends and family</div>
+
+      <div class="profile">
+        <div class="profile-item">
+          <div class="profile-label">Major</div>
+          <div class="profile-value">B.S. in Human Resources Management</div>
+        </div>
+      
+        <div class="profile-item">
+          <div class="profile-label">Honors & Achievements</div>
+          <div class="profile-value">4.0 GPA, Dean's List every semester, recognized for outstanding academic excellence</div>
+        </div>
+      
+        <div class="profile-item">
+          <div class="profile-label">Future Endeavors</div>
+          <div class="profile-value">Pursuing her MBA while growing into a compassionate, influential, and impactful HR leader</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="gallery-wrapper">
+      <div class="gallery-title">The Beautiful Grad</div>
+      <div class="gallery-grid">
+        <figure class="photo p1"><img src="associateflowers.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p2"><img src="fierce.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p3"><img src="beautywine.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p4"><img src="realart.JPG" alt="Sandrine"></figure>
+        <figure class="photo p6"><img src="sansitting.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p5"><img src="mainpic.jpeg" alt="Sandrine in graduation cap"></figure>
+        <figure class="photo p7"><img src="majestic.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p8"><img src="Sanbdaysmiling.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p9"><img src="beautifuldress.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p10"><img src="swag.jpeg" alt="Sandrine"></figure>
+        <figure class="photo p11"><img src="orange-dress.jpeg" alt="Sandrine in orange dress"></figure>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h3>Share Your Message for Sandrine</h3>
+      <p>Please share how proud you are of her, a favorite memory, or a blessing for her future.</p>
+
+      <form id="messageForm">
+        <div>
+          <label for="name">Your Name</label>
+          <input type="text" id="name" required />
+        </div>
+
+        <div>
+          <label for="relationship">Your Relationship to Sandrine (optional)</label>
+          <input type="text" id="relationship" />
+        </div>
+
+        <div>
+          <label for="message">Your Message</label>
+          <textarea id="message" rows="5" required></textarea>
+        </div>
+
+        <button type="submit">Submit Message</button>
+      </form>
+
+      <p id="status"></p>
+
+      <p class="view-note">
+        <strong>Note:</strong> These messages were written just for you, Sandrine. We all love you! 
+        To read everything your loved ones shared, 
+        <a href="sandrine_responses.html" target="_blank" style="color: #AB2941; text-decoration: underline;">click here</a>.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAso8_mTe_lsaMH0g6O13mZJUGYpIjUS4E",
+      authDomain: "sandrine-graduation-messages.firebaseapp.com",
+      projectId: "sandrine-graduation-messages",
+      storageBucket: "sandrine-graduation-messages.firebasestorage.app",
+      messagingSenderId: "501332756636",
+      appId: "1:501332756636:web:13b5b4406b3c784c9c4559"
+    };
+
+    // Initialize Firebase
+    let db;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+    }
+
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('messageForm');
+      
+      form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const submitButton = form.querySelector('button[type="submit"]');
+        const statusEl = document.getElementById('status');
+        
+        // Get form values
+        const name = document.getElementById('name').value.trim();
+        const relationship = document.getElementById('relationship').value.trim();
+        const message = document.getElementById('message').value.trim();
+
+        // Validate
+        if (!name || !message) {
+          statusEl.textContent = 'Please fill out your name and message.';
+          statusEl.style.color = '#AB2941';
+          statusEl.style.background = '#ffe6ea';
+          return;
+        }
+
+        // Disable button and show loading
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+        statusEl.textContent = '';
+
+        try {
+          // Save to Firestore
+          await db.collection('messages').add({
+            name: name,
+            relationship: relationship,
+            message: message,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          // Success!
+          form.reset();
+          statusEl.style.color = '#2d6a2d';
+          statusEl.style.background = '#e8f5e8';
+          statusEl.textContent = 'Thank you! Your message has been saved ❤️';
+          
+          console.log('Message saved successfully');
+        } catch (error) {
+          console.error('Error saving message:', error);
+          statusEl.textContent = 'There was an error saving your message. Please try again.';
+          statusEl.style.color = '#AB2941';
+          statusEl.style.background = '#ffe6ea';
+        } finally {
+          // Re-enable button
+          submitButton.disabled = false;
+          submitButton.textContent = 'Submit Message';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

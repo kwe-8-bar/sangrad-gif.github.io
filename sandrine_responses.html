@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Messages for Sandrine - Private View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Classy fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Firebase compat SDKs (match main page) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      color: #333;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Login Screen */
+    .login-container {
+      max-width: 450px;
+      margin: 10vh auto;
+      background: white;
+      padding: 3rem 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-header h1 {
+      color: #AB2941;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .login-header p {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .form-group input {
+      padding: 0.9rem;
+      border: 2px solid #E4E4E4;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #AB2941;
+    }
+
+    .login-button {
+      background: linear-gradient(135deg, #AB2941 0%, #8b1f35 100%);
+      color: white;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 12px rgba(171, 41, 65, 0.3);
+      letter-spacing: 0.3px;
+    }
+
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(171, 41, 65, 0.4);
+    }
+
+    .login-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-message {
+      color: #AB2941;
+      background: #ffe6ea;
+      padding: 0.75rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      text-align: center;
+      display: none;
+    }
+
+    /* Messages Display */
+    .messages-view {
+      display: none;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #AB2941 0%, #8b1f35 100%);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      font-family: 'Playfair Display', serif;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      margin-top: 1rem;
+    }
+
+    .logout-button {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: #AB2941;
+      background: white;
+      border: 2px solid #AB2941;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .logout-button:hover {
+      background: #AB2941;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .message-count {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    .messages-grid {
+      display: grid;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .message-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #AB2941;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .message-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(171, 41, 65, 0.2);
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .message-author {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #AB2941;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .message-relationship {
+      font-size: 0.95rem;
+      color: #666;
+      font-style: italic;
+      margin-top: 0.25rem;
+    }
+
+    .message-date {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .message-text {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #333;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #E4E4E4;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .no-messages {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .no-messages p {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 3rem;
+      color: #AB2941;
+      font-size: 1.1rem;
+    }
+
+    .refresh-button {
+      display: inline-block;
+      margin: 0 auto 2rem;
+      color: white;
+      background: linear-gradient(135deg, #AB2941 0%, #8b1f35 100%);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+      box-shadow: 0 4px 12px rgba(171, 41, 65, 0.3);
+    }
+
+    .refresh-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(171, 41, 65, 0.4);
+    }
+
+    .button-container {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .message-header {
+        flex-direction: column;
+      }
+
+      .message-card {
+        padding: 1.5rem;
+      }
+
+      .login-container {
+        padding: 2rem 1.5rem;
+        margin: 5vh 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Login Screen -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-header">
+      <h1>🎓 Private Messages</h1>
+      <p>For Sandrine's eyes only</p>
+    </div>
+    
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label for="password">Enter Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password" />
+      </div>
+      
+      <div class="error-message" id="errorMessage">
+        Incorrect password. Please try again.
+      </div>
+      
+      <button type="submit" class="login-button">View Messages</button>
+    </form>
+  </div>
+
+  <!-- Messages View (Hidden by default) -->
+  <div class="container messages-view" id="messagesView">
+    <button class="logout-button" id="logoutButton">← Logout</button>
+
+    <div class="header">
+      <h1>Your Messages, Sandrine 💕</h1>
+      <p>All the love, encouragement, and blessings from your friends and family</p>
+    </div>
+
+    <div class="message-count" id="messageCount">
+      Loading messages...
+    </div>
+
+    <div class="button-container">
+      <button class="refresh-button" id="refreshButton">🔄 Refresh Messages</button>
+    </div>
+
+    <div class="messages-grid" id="messagesContainer">
+      <div class="loading-spinner">Loading your messages...</div>
+    </div>
+  </div>
+
+  <!-- Logic script -->
+  <script>
+    // Firebase config (same as main page)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAso8_mTe_lsaMH0g6O13mZJUGYpIjUS4E",
+      authDomain: "sandrine-graduation-messages.firebaseapp.com",
+      projectId: "sandrine-graduation-messages",
+      storageBucket: "sandrine-graduation-messages.firebasestorage.app",
+      messagingSenderId: "501332756636",
+      appId: "1:501332756636:web:13b5b4406b3c784c9c4559"
+    };
+
+    // Initialize Firebase
+    let db;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+    }
+
+    const CORRECT_PASSWORD = "sandrine2025";
+    let isAuthenticated = false;
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text ?? "";
+      return div.innerHTML;
+    }
+
+    // Format date nicely
+    function formatDate(timestamp) {
+      if (!timestamp || !timestamp.toDate) return "";
+      
+      try {
+        return timestamp.toDate().toLocaleString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        });
+      } catch (error) {
+        console.error('Date formatting error:', error);
+        return "";
+      }
+    }
+
+    // Display messages from Firestore
+    async function displayMessages() {
+      if (!isAuthenticated) return;
+
+      const container = document.getElementById("messagesContainer");
+      const countEl = document.getElementById("messageCount");
+
+      // Show loading state
+      container.innerHTML = '<div class="loading-spinner">Loading your messages...</div>';
+      countEl.textContent = "Loading messages...";
+
+      try {
+        const snapshot = await db
+          .collection("messages")
+          .orderBy("createdAt", "desc")
+          .get();
+
+        if (snapshot.empty) {
+          container.innerHTML = `
+            <div class="no-messages">
+              <p>No messages have been submitted yet.</p>
+              <p style="color: #999; font-size: 1rem;">
+                Messages will appear here as people submit them through the main page.
+              </p>
+            </div>
+          `;
+          countEl.textContent = "No messages yet";
+          return;
+        }
+
+        let html = "";
+        snapshot.forEach(docSnap => {
+          const msg = docSnap.data();
+          const dateString = formatDate(msg.createdAt);
+
+          html += `
+            <div class="message-card">
+              <div class="message-header">
+                <div>
+                  <div class="message-author">${escapeHtml(msg.name)}</div>
+                  ${msg.relationship ? `<div class="message-relationship">${escapeHtml(msg.relationship)}</div>` : ""}
+                </div>
+                ${dateString ? `<div class="message-date">${dateString}</div>` : ""}
+              </div>
+              <div class="message-text">${escapeHtml(msg.message)}</div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+        countEl.textContent = `${snapshot.size} message${snapshot.size !== 1 ? "s" : ""} of love ❤️`;
+        
+        console.log(`Loaded ${snapshot.size} messages successfully`);
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        container.innerHTML = `
+          <div class="no-messages">
+            <p>There was an error loading the messages.</p>
+            <p style="color: #999; font-size: 1rem;">
+              Error: ${error.message || 'Unknown error'}
+            </p>
+            <p style="color: #999; font-size: 1rem; margin-top: 1rem;">
+              Please try refreshing the page or check your internet connection.
+            </p>
+          </div>
+        `;
+        countEl.textContent = "Error loading messages";
+      }
+    }
+
+    // Wait for DOM to be ready
+    window.addEventListener("DOMContentLoaded", () => {
+      const loginContainer = document.getElementById("loginContainer");
+      const messagesView = document.getElementById("messagesView");
+      const loginForm = document.getElementById("loginForm");
+      const passwordInput = document.getElementById("password");
+      const errorMessage = document.getElementById("errorMessage");
+      const logoutButton = document.getElementById("logoutButton");
+      const refreshButton = document.getElementById("refreshButton");
+
+      // Handle login
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const submitButton = loginForm.querySelector('button[type="submit"]');
+        const password = passwordInput.value.trim();
+
+        // Validate password
+        if (password === CORRECT_PASSWORD) {
+          // Disable button during transition
+          submitButton.disabled = true;
+          submitButton.textContent = "Loading...";
+          
+          isAuthenticated = true;
+          errorMessage.style.display = "none";
+          loginContainer.style.display = "none";
+          messagesView.style.display = "block";
+          
+          // Load messages
+          await displayMessages();
+          
+          // Reset button
+          submitButton.disabled = false;
+          submitButton.textContent = "View Messages";
+        } else {
+          // Show error
+          errorMessage.style.display = "block";
+          passwordInput.value = "";
+          passwordInput.focus();
+        }
+      });
+
+      // Handle logout
+      logoutButton.addEventListener("click", () => {
+        isAuthenticated = false;
+        messagesView.style.display = "none";
+        loginContainer.style.display = "block";
+        loginForm.reset();
+        errorMessage.style.display = "none";
+        
+        // Clear messages
+        document.getElementById("messagesContainer").innerHTML = "";
+        console.log("Logged out");
+      });
+
+      // Handle refresh
+      refreshButton.addEventListener("click", async () => {
+        console.log("Refreshing messages...");
+        await displayMessages();
+      });
+    });
+  </script>
+</body>
+</html>
